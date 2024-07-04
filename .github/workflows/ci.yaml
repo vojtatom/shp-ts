@@ -50,9 +50,6 @@ jobs:
             - name: Create Release ZIP file
               run: |
                   zip -r shpts.zip dist
-            - uses: rickstaa/action-create-tag@v1
-              with:
-                  tag: ${{ env.CURRENT_VERSION }}
             - uses: ncipollo/release-action@v1
               with:
                   artifacts: 'shpts.zip'
