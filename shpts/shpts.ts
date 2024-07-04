@@ -12,6 +12,7 @@ import { DbfRecord } from './table/record';
 import { DbfFieldDescr, DbfFieldType } from './types/dbfTypes';
 import { Coord, CoordType } from './types/coordinate';
 import { triangulate } from './utils/triangulation';
+import { BaseRecord } from './geometry/base';
 
 export {
     DbfReader,
@@ -26,6 +27,7 @@ export {
     MultiPointRecord,
     MultiPatchRecord,
     CoordType,
+    BaseRecord,
     triangulate,
 };
 
