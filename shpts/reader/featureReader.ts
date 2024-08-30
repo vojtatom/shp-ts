@@ -20,7 +20,7 @@ export class FeatureReader {
     }
 
     private constructor(shapeFile: ShapeReader, dbfReader?: DbfReader) {
-        if (shapeFile.recordCount !== dbfReader?.recordCount) {
+        if (dbfReader && shapeFile.recordCount !== dbfReader?.recordCount) {
             throw new Error(
                 `Record count mismatch: SHP-file has ${shapeFile.recordCount} records, DBF has ${dbfReader?.recordCount}`
             );

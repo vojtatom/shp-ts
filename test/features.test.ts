@@ -53,6 +53,22 @@ test('Read feature collection', async () => {
     });
 });
 
+test('Read feature collection only with geometry', async () => {
+    const shp = openFileAsArray('testdata/featureclass.shp');
+    const shx = openFileAsArray('testdata/featureclass.shx');
+    const reader = await FeatureReader.fromArrayBuffers(shp, shx);
+    const collection = reader.readFeatureCollection();
+    expect(collection.features.length).toEqual(7);
+    expect(reader.fields?.length).toEqual(undefined);
+
+    collection.features.forEach((feature) => {
+        expect(feature.geom).not.toBeNull();
+        expect(feature.properties).not.toBeNull();
+        expect(Object.keys(feature.properties).length).toEqual(0);
+        expect(feature.geom instanceof PolyLineRecord).toBeTruthy();
+    });
+});
+
 test('SHP and DBF count mismatch', async () => {
     const shp = openFileAsArray('testdata/polyline.shp');
     const shx = openFileAsArray('testdata/polyline.shx');
