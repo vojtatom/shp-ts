@@ -33,7 +33,7 @@ export class PolygonRecord extends BaseRingedRecord {
         const parts = shpStream.readInt32Array(numParts, true);
         const xy = shpStream.readDoubleArray(numPoints * 2, true);
         if (hasZ) z = PolygonRecord.getZValues(shpStream, numPoints);
-        if (hasM) m = PolygonRecord.getMValues(shpStream, numPoints);
+        if (hasM && !shpStream.seekEnding) m = PolygonRecord.getMValues(shpStream, numPoints);
         const coords = PolygonRecord.getCoords(parts, xy, z, m);
         const polygons = assemblePolygonsWithHoles(coords);
         return new PolygonRecord(polygons as PolygonCoord, GeomUtil.coordType(header.type));

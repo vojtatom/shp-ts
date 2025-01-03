@@ -7,6 +7,10 @@ export class MemoryStream {
         return this.offset;
     }
 
+    get seekEnding() {
+        return this.size === this.offset;
+    }
+
     constructor(buffer: ArrayBuffer) {
         this.size = buffer.byteLength;
         this.dataView = new DataView(buffer);
