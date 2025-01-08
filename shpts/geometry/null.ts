@@ -4,7 +4,7 @@ import { CoordType } from '@shpts/types/coordinate';
 
 export class ShpNullGeom extends BaseRecord {
     constructor() {
-        super(CoordType.NULL);
+        super(CoordType.NULL, false);
     }
 
     get type() {

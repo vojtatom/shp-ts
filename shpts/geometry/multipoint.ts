@@ -7,8 +7,8 @@ import { GeomHeader } from '@shpts/types/data';
 import { MemoryStream } from '@shpts/utils/stream';
 
 export class MultiPointRecord extends BaseRecord {
-    constructor(public coords: MultiPointCoord, coordType: CoordType) {
-        super(coordType);
+    constructor(public coords: MultiPointCoord, coordType: CoordType, hasMValuesPresent: boolean) {
+        super(coordType, hasMValuesPresent);
     }
 
     get type() {
@@ -17,7 +17,7 @@ export class MultiPointRecord extends BaseRecord {
 
     static fromPresetReader(reader: ShapeReader, header: GeomHeader) {
         const hasZ = reader.hasZ;
-        const hasM = reader.hasM;
+        const hasOptionalM = reader.hasOptionalM;
         const shpStream = reader.shpStream;
         let z, m;
 
@@ -25,9 +25,16 @@ export class MultiPointRecord extends BaseRecord {
         const numPoints = shpStream.readInt32(true);
         const xy = shpStream.readDoubleArray(numPoints * 2, true);
         if (hasZ) z = MultiPointRecord.getZValues(shpStream, numPoints);
+
+        const hasM = !this.recordReadingFinalized(shpStream, header) && hasOptionalM;
         if (hasM) m = MultiPointRecord.getMValues(shpStream, numPoints);
+
         const coords = MultiPointRecord.getCoords(numPoints, xy, z, m);
-        return new MultiPointRecord(coords as MultiPointCoord, GeomUtil.coordType(header.type));
+        return new MultiPointRecord(
+            coords as MultiPointCoord,
+            GeomUtil.coordType(header.type),
+            hasM
+        );
     }
 
     private static getZValues(shpStream: MemoryStream, numPoints: number) {

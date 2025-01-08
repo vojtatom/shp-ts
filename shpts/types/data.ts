@@ -11,6 +11,8 @@ export interface ShpHeader {
     readonly extent: BoundingBox;
     readonly type: ShapeType;
     readonly fileLength: number;
+    readonly zRange: { min: number; max: number };
+    readonly mRange: { min: number; max: number };
 }
 
 export interface ShxRecord {
@@ -19,6 +21,7 @@ export interface ShxRecord {
 }
 
 export interface GeomHeader {
+    offset: number;
     recordNum: number;
     length: number;
     type: ShapeType;

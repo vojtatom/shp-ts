@@ -6,8 +6,8 @@ import { GeomUtil } from '@shpts/utils/geometry';
 import { GeomHeader } from '@shpts/types/data';
 
 export class PolyLineRecord extends BaseRingedRecord {
-    constructor(public coords: PolyLineCoord, coordType: CoordType) {
-        super(coordType);
+    constructor(public coords: PolyLineCoord, coordType: CoordType, hasMValuesPresent: boolean) {
+        super(coordType, hasMValuesPresent);
     }
 
     get type() {
@@ -17,7 +17,7 @@ export class PolyLineRecord extends BaseRingedRecord {
 
     static fromPresetReader(reader: ShapeReader, header: GeomHeader) {
         const hasZ = reader.hasZ;
-        const hasM = reader.hasM;
+        const hasOptionalM = reader.hasOptionalM;
         const shpStream = reader.shpStream;
         let z, m;
 
@@ -27,9 +27,12 @@ export class PolyLineRecord extends BaseRingedRecord {
         const parts = shpStream.readInt32Array(numParts, true);
         const xy = shpStream.readDoubleArray(numPoints * 2, true);
         if (hasZ) z = PolyLineRecord.getZValues(shpStream, numPoints);
+
+        const hasM = !this.recordReadingFinalized(shpStream, header) && hasOptionalM;
         if (hasM) m = PolyLineRecord.getMValues(shpStream, numPoints);
+
         const coords = PolyLineRecord.getCoords(parts, xy, z, m);
-        return new PolyLineRecord(coords as PolyLineCoord, GeomUtil.coordType(header.type));
+        return new PolyLineRecord(coords as PolyLineCoord, GeomUtil.coordType(header.type), hasM);
     }
 
     toGeoJson() {

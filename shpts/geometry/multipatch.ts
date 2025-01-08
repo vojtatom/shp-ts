@@ -12,8 +12,8 @@ import { assemblePolygonsWithHoles } from '@shpts/utils/orientation';
 import { GeomUtil } from '@shpts/utils/geometry';
 
 export class MultiPatchRecord extends BaseRingedRecord {
-    constructor(public coords: MultiPatchCoord, coordType: CoordType) {
-        super(coordType);
+    constructor(public coords: MultiPatchCoord, coordType: CoordType, hasMValuesPresent: boolean) {
+        super(coordType, hasMValuesPresent);
     }
 
     get type() {
@@ -23,7 +23,7 @@ export class MultiPatchRecord extends BaseRingedRecord {
 
     static fromPresetReader(reader: ShapeReader, header: GeomHeader) {
         const hasZ = reader.hasZ;
-        const hasM = reader.hasM;
+        const hasOptionalM = reader.hasOptionalM;
         const shpStream = reader.shpStream;
         let z, m;
 
@@ -34,12 +34,16 @@ export class MultiPatchRecord extends BaseRingedRecord {
         const partTypes = shpStream.readInt32Array(numParts, true);
         const xy = shpStream.readDoubleArray(numPoints * 2, true);
         if (hasZ) z = MultiPatchRecord.getZValues(shpStream, numPoints);
+
+        const hasM = !this.recordReadingFinalized(shpStream, header) && hasOptionalM;
         if (hasM) m = MultiPatchRecord.getMValues(shpStream, numPoints);
+
         const coords = MultiPatchRecord.getCoords(parts, xy, z, m);
         const assembledCoords = MultiPatchRecord.assemblePolygonsWithHoles(coords, partTypes);
         return new MultiPatchRecord(
             assembledCoords as MultiPatchCoord,
-            GeomUtil.coordType(header.type)
+            GeomUtil.coordType(header.type),
+            hasM
         );
     }
 

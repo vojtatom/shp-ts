@@ -8,6 +8,13 @@ import { BoundingBox, GeomHeader, PartsInfo, ShpHeader } from '@shpts/types/data
 import { MemoryStream } from '@shpts/utils/stream';
 import { MultiPatchRecord } from '@shpts/geometry/multipatch';
 
+// According to Shape spec, M values less than this is NaN
+export const mNaN = -Math.pow(-10, 38);
+
+function isMNaN(m: number) {
+    return m <= mNaN;
+}
+
 export class ShapeReader {
     private shxStream: MemoryStream;
     private shxHeader: ShpHeader;
@@ -16,7 +23,7 @@ export class ShapeReader {
 
     readonly recordCount: number = 0;
     readonly hasZ: boolean;
-    readonly hasM: boolean;
+    readonly hasOptionalM: boolean;
 
     private constructor(shp: ArrayBuffer, shx: ArrayBuffer) {
         this.shpStream = new MemoryStream(shp);
@@ -27,9 +34,12 @@ export class ShapeReader {
         if (this.shpHeader.type !== this.shxHeader.type)
             throw new Error('SHP / SHX shapetype mismatch');
 
+        //const zRangeDefined = !isMNaN(this.shpHeader.zRange.min) && !isMNaN(this.shpHeader.zRange.max);
+        //const mRangeDefined = !isMNaN(this.shpHeader.mRange.min) && !isMNaN(this.shpHeader.mRange.max);
+
         this.recordCount = (this.shxHeader.fileLength - 100) / 8;
         this.hasZ = GeomUtil.hasZ(this.shpHeader.type);
-        this.hasM = GeomUtil.hasM(this.shpHeader.type);
+        this.hasOptionalM = GeomUtil.hasOptionalM(this.shpHeader.type);
     }
 
     static async fromFile(shp: File, shx: File) {
@@ -53,19 +63,27 @@ export class ShapeReader {
         const shpType = stream.seek(32).readInt32(true);
         stream.seek(36);
         const extent = this.readBbox(stream);
+        const zMin = stream.readDouble(true);
+        const zMax = stream.readDouble(true);
+        const mMin = stream.readDouble(true);
+        const mMax = stream.readDouble(true);
         const result = {
             type: shpType as ShapeType,
             fileLength: fileLen * 2,
             extent: extent,
+            zRange: { min: zMin, max: zMax },
+            mRange: { min: mMin, max: mMax },
         };
         return result;
     }
 
     private readGeomHeader(): GeomHeader {
+        const offset = this.shpStream.tell;
         const recNum = this.shpStream.readInt32(false);
         const len = this.shpStream.readInt32(false);
         const type: ShapeType = this.shpStream.readInt32(true) as ShapeType;
         return {
+            offset,
             length: len,
             recordNum: recNum,
             type: type,
