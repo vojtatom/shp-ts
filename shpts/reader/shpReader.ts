@@ -8,13 +8,6 @@ import { BoundingBox, GeomHeader, PartsInfo, ShpHeader } from '@shpts/types/data
 import { MemoryStream } from '@shpts/utils/stream';
 import { MultiPatchRecord } from '@shpts/geometry/multipatch';
 
-// According to Shape spec, M values less than this is NaN
-export const mNaN = -Math.pow(-10, 38);
-
-function isMNaN(m: number) {
-    return m <= mNaN;
-}
-
 export class ShapeReader {
     private shxStream: MemoryStream;
     private shxHeader: ShpHeader;
