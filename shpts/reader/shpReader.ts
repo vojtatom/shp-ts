@@ -63,16 +63,10 @@ export class ShapeReader {
         const shpType = stream.seek(32).readInt32(true);
         stream.seek(36);
         const extent = this.readBbox(stream);
-        const zMin = stream.readDouble(true);
-        const zMax = stream.readDouble(true);
-        const mMin = stream.readDouble(true);
-        const mMax = stream.readDouble(true);
         const result = {
             type: shpType as ShapeType,
             fileLength: fileLen * 2,
             extent: extent,
-            zRange: { min: zMin, max: zMax },
-            mRange: { min: mMin, max: mMax },
         };
         return result;
     }
