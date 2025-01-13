@@ -1,18 +1,22 @@
 import { Coord, CoordType } from '@shpts/types/coordinate';
 import { GeoJsonGeom } from '@shpts/types/geojson';
-import { BoundingBox } from '@shpts/types/data';
+import { BoundingBox, GeomHeader } from '@shpts/types/data';
 import { MemoryStream } from '@shpts/utils/stream';
 
 export abstract class BaseRecord {
-    constructor(readonly coordType: CoordType) {}
+    constructor(readonly coordType: CoordType, private hasMValuesPresent: boolean) {}
     abstract toGeoJson(): GeoJsonGeom;
 
     get hasZ(): boolean {
         return this.coordType === CoordType.XYZM;
     }
 
-    get hasM(): boolean {
+    get hasOptionalM(): boolean {
         return this.coordType === CoordType.XYM || this.coordType === CoordType.XYZM;
+    }
+
+    get hasM(): boolean {
+        return this.hasMValuesPresent;
     }
 
     get coordLength(): number {
@@ -34,6 +38,12 @@ export abstract class BaseRecord {
             xMax: xMax,
             yMax: yMax,
         };
+    }
+
+    static recordReadingFinalized(shpStream: MemoryStream, header: GeomHeader) {
+        //per spec, each record is (4 + header.length) * 2 bytes long
+        //if the stream is at the end of the record, then we are good
+        return shpStream.tell === header.offset + (4 + header.length) * 2;
     }
 }
 

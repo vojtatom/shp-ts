@@ -19,6 +19,7 @@ export interface ShxRecord {
 }
 
 export interface GeomHeader {
+    offset: number;
     recordNum: number;
     length: number;
     type: ShapeType;

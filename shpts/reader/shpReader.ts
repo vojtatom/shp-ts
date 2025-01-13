@@ -16,7 +16,7 @@ export class ShapeReader {
 
     readonly recordCount: number = 0;
     readonly hasZ: boolean;
-    readonly hasM: boolean;
+    readonly hasOptionalM: boolean;
 
     private constructor(shp: ArrayBuffer, shx: ArrayBuffer) {
         this.shpStream = new MemoryStream(shp);
@@ -27,9 +27,12 @@ export class ShapeReader {
         if (this.shpHeader.type !== this.shxHeader.type)
             throw new Error('SHP / SHX shapetype mismatch');
 
+        //const zRangeDefined = !isMNaN(this.shpHeader.zRange.min) && !isMNaN(this.shpHeader.zRange.max);
+        //const mRangeDefined = !isMNaN(this.shpHeader.mRange.min) && !isMNaN(this.shpHeader.mRange.max);
+
         this.recordCount = (this.shxHeader.fileLength - 100) / 8;
         this.hasZ = GeomUtil.hasZ(this.shpHeader.type);
-        this.hasM = GeomUtil.hasM(this.shpHeader.type);
+        this.hasOptionalM = GeomUtil.hasOptionalM(this.shpHeader.type);
     }
 
     static async fromFile(shp: File, shx: File) {
@@ -62,10 +65,12 @@ export class ShapeReader {
     }
 
     private readGeomHeader(): GeomHeader {
+        const offset = this.shpStream.tell;
         const recNum = this.shpStream.readInt32(false);
         const len = this.shpStream.readInt32(false);
         const type: ShapeType = this.shpStream.readInt32(true) as ShapeType;
         return {
+            offset,
             length: len,
             recordNum: recNum,
             type: type,
