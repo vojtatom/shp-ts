@@ -13,6 +13,7 @@ import { DbfFieldDescr, DbfFieldType } from './types/dbfTypes';
 import { Coord, CoordType } from './types/coordinate';
 import { triangulate } from './utils/triangulation';
 import { BaseRecord } from './geometry/base';
+import { ShapeType } from './utils/geometry';
 
 export {
     DbfReader,
@@ -31,4 +32,4 @@ export {
     triangulate,
 };
 
-export type { DbfFieldType, DbfFieldDescr, Coord };
+export type { DbfFieldType, DbfFieldDescr, Coord, ShapeType };

@@ -41,7 +41,7 @@ export class GeomUtil {
         return type === CoordType.XYZM;
     }
 
-    static hasM(shapeType: ShapeType): boolean {
+    static hasOptionalM(shapeType: ShapeType): boolean {
         const type = GeomUtil.coordType(shapeType);
         return type === CoordType.XYZM || type === CoordType.XYM;
     }

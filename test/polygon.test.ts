@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { expectGeometry, expectRing, openFileAsArray } from './utils';
-import { ShapeReader, PolygonRecord, CoordType } from '@shpts/shpts';
+import { ShapeReader, PolygonRecord, CoordType, FeatureReader } from '@shpts/shpts';
 
 test('Reading PolygonRecord', async () => {
     const shpBuffer = openFileAsArray('testdata/polygon.shp');
@@ -39,6 +39,7 @@ test('Reading PolygonRecord', async () => {
     ]);
 
     geom = expectGeometry(reader, 1, CoordType.XY, PolygonRecord);
+    expect(geom.hasM).toBeFalsy();
     expect(geom.type).toEqual('Polygon');
     expect(geom.coords.length).toBe(1);
     polygon = geom.coords[0];
@@ -114,6 +115,7 @@ test('Reading PolygonRecord with M', async () => {
     expect(reader.recordCount).toBe(2);
 
     let geom = expectGeometry(reader, 0, CoordType.XYM, PolygonRecord);
+    expect(geom.hasM).toBeTruthy();
     expect(geom.type).toEqual('Polygon');
     expect(geom.coords.length).toBe(1);
     let polygon = geom.coords[0];
@@ -255,4 +257,20 @@ test('Reading PolygonZ Terrain Example', async () => {
 
     const reader = await ShapeReader.fromArrayBuffer(shpBuffer, shxBuffer);
     expect(reader.recordCount).toBe(42798);
+});
+
+test('Reading PolygonZ without M values', async () => {
+    const shpBuffer = openFileAsArray('testdata/polygonZ.shp');
+    const shxBuffer = openFileAsArray('testdata/polygonZ.shx');
+    const dbfBuffer = openFileAsArray('testdata/polygonZ.dbf');
+
+    const reader = await FeatureReader.fromArrayBuffers(shpBuffer, shxBuffer, dbfBuffer);
+    const col = reader.readFeatureCollection();
+    const features = col.features;
+    expect(features.length).toBe(1);
+
+    const geom = features[0].geom;
+    expect(geom.type).toEqual('Polygon');
+    expect(geom.hasM).toBeFalsy();
+    expect(geom.hasZ).toBeTruthy();
 });

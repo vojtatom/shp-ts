@@ -12,8 +12,8 @@ import { GeomHeader } from '@shpts/types/data';
 import { assemblePolygonsWithHoles } from '@shpts/utils/orientation';
 
 export class PolygonRecord extends BaseRingedRecord {
-    constructor(public coords: PolygonCoord, coordType: CoordType) {
-        super(coordType);
+    constructor(public coords: PolygonCoord, coordType: CoordType, hasMValuesPresent: boolean) {
+        super(coordType, hasMValuesPresent);
     }
 
     get type() {
@@ -23,7 +23,7 @@ export class PolygonRecord extends BaseRingedRecord {
 
     static fromPresetReader(reader: ShapeReader, header: GeomHeader) {
         const hasZ = reader.hasZ;
-        const hasM = reader.hasM;
+        const hasOptionalM = reader.hasOptionalM;
         const shpStream = reader.shpStream;
         let z, m;
 
@@ -33,10 +33,13 @@ export class PolygonRecord extends BaseRingedRecord {
         const parts = shpStream.readInt32Array(numParts, true);
         const xy = shpStream.readDoubleArray(numPoints * 2, true);
         if (hasZ) z = PolygonRecord.getZValues(shpStream, numPoints);
+
+        const hasM = !this.recordReadingFinalized(shpStream, header) && hasOptionalM;
         if (hasM) m = PolygonRecord.getMValues(shpStream, numPoints);
+
         const coords = PolygonRecord.getCoords(parts, xy, z, m);
         const polygons = assemblePolygonsWithHoles(coords);
-        return new PolygonRecord(polygons as PolygonCoord, GeomUtil.coordType(header.type));
+        return new PolygonRecord(polygons as PolygonCoord, GeomUtil.coordType(header.type), hasM);
     }
 
     toGeoJson(): GeoJsonGeom {
